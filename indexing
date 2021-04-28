@@ -1,0 +1,39 @@
+# Title: miRNA database by christopher cedillo c.cedilloc@gmail.com
+# 0Directory set and libraries
+
+library (devtools)
+library (tidyverse)
+source_url("https://raw.githubusercontent.com/lrjoshi/FastaTabular/master/fasta_and_tabular.R")
+
+# 1Fasta to csv data from mirbase v22
+
+FastaToTabular("mature.fa") 
+## the structuration of the dataset was performed out of the R environment
+## and the index is now presented
+index<-read.csv("0index.csv", header = T, sep = ",")
+
+# 2Target prediction for unique Solanum lycopersicum mature sequences
+## the sequences were used to performe sRNA target interaction in 
+## psRNATarget: A Plant Small RNA Target Analysis Server (2017 Update) in its V2
+## avaiable at http://plantgrn.noble.org/psRNATarget/
+
+mti1<-read.csv("psRNATargetJob-1541169238789599.txt", header = T, sep = "\t")
+names(mti1)[names(mti1) == "miRNA_Acc."] <- "seq"
+
+
+# 3target predicion indexing
+mti2 <- (merge(index, mti1, by = 'seq'))
+
+# 4data presentation for computational approach
+mti_computational<-data.frame(id_mirbase=mti2$id_mirbase,
+                              Target_Acc.=mti2$Target_Acc.,
+                              Target_desc.=mti2$Target_Desc.,
+                              approach=rep("computational",nrow(mti2)),
+                              Expectation=mti2$Expectation,
+                              UPE=mti2$UPE.,
+                              Inhibition=mti2$Inhibition)
+# summary of results
+summary <- data.frame(description=("Total miRNA-target interaction: "), results=nrow(mti_computational))
+
+# 4Write csv about miRNA and target interacion through computational approach
+write.csv(mti_computational,"3mtiComputational.csv", row.names = FALSE)
